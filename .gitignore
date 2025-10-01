@@ -1,0 +1,108 @@
+# ------------------------------------------------------
+# Node.js
+# ------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log
+
+# ------------------------------------------------------
+# Expo / React Native
+# ------------------------------------------------------
+.expo/
+.expo-shared/
+web-build/
+dist/
+build/
+android/
+ios/
+*.apk
+*.aab
+
+# Metro bundler cache
+.expo/*
+.expo-shared/*
+.expo-env.json
+.packager
+/metro-cache
+/metro-cache/*
+/.expo/*
+/.expo-shared/*
+
+# React Native
+*.iml
+*.gradle
+local.properties
+*.keystore
+*.jks
+*.p12
+*.p8
+*.mobileprovision
+
+# ------------------------------------------------------
+# macOS / Windows / Linux system files
+# ------------------------------------------------------
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Icon?
+__MACOSX/
+$RECYCLE.BIN/
+
+# ------------------------------------------------------
+# IDE / Editors
+# ------------------------------------------------------
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.log
+*.pid
+*.seed
+*.tgz
+
+# ------------------------------------------------------
+# Env files
+# ------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ------------------------------------------------------
+# Logs
+# ------------------------------------------------------
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------------------------------
+# Coverage / Testing
+# ------------------------------------------------------
+coverage/
+.nyc_output/
+
+# ------------------------------------------------------
+# Misc
+# ------------------------------------------------------
+.tmp/
+temp/
+cache/
+*.tmp
+*.bak
+*.orig
+
+# ------------------------------------------------------
+# Backend specific
+# ------------------------------------------------------
+/uploads/
