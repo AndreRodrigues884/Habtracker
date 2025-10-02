@@ -14,7 +14,7 @@ import FireIcon from '../assets/icons/fire.svg';
 
 export const ProfileScreen = () => {
   const { theme: t } = useThemeContext();
-  
+
   const { token, user, setUser } = useContext(AuthContext);
   const [profile, setProfile] = useState<User | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatar || null);
@@ -95,74 +95,77 @@ export const ProfileScreen = () => {
         }
         showsVerticalScrollIndicator={false}
       >
-      <View style={styles.picContainer}>
-        <View style={styles.profilePicWrapper}>
-          <TouchableOpacity onPress={pickImage}>
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.profileImage} />
-            ) : (
-              <View style={styles.placeholder}>
-                <Text>Add Picture</Text>
+        <View style={styles.picContainer}>
+          <View style={styles.profilePicWrapper}>
+            <TouchableOpacity onPress={pickImage}>
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={styles.profileImage} />
+              ) : (
+                <View style={styles.placeholder}>
+                  <Text>Add Picture</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            {profile?.xp !== undefined && (
+              <View style={styles.xpBadge}>
+                <Text style={styles.xpText}>{profile.xp} XP</Text>
               </View>
             )}
-          </TouchableOpacity>
-          {profile?.xp !== undefined && (
-            <View style={styles.xpBadge}>
-              <Text style={styles.xpText}>{profile.xp} XP</Text>
+          </View>
+          {profile?.name ? (
+            <Text style={styles.profileName}>{profile.name}</Text>
+          ) : null}
+        </View>
+        {/* Habits in Progress Tab */}
+        <View style={styles.mainContainer}>
+          {profile && (
+            <View style={styles.tabContainer}>
+              <View style={styles.progressContainer}>
+                <Text style={[styles.tabText, { color: t.colors.dark_text }]}>Completed Habits</Text>
+                <Text style={styles.tabCount}>{profile.habitsCompletedCount}</Text>
+              </View>
+            </View>
+          )}
+          {profile && (
+            <View style={styles.tabContainer}>
+              <View style={styles.progressContainer}>
+                <Text style={[styles.tabText, { color: t.colors.dark_text }]}>Habits in Progress</Text>
+                <Text style={styles.tabCount}>{profile.associatedhabits.length}</Text>
+              </View>
+            </View>
+          )}
+          {/* Favorite habit by current streak */}
+          {favoriteCurrentHabit && (
+            <View style={styles.favHabitContainer}>
+              <View style={styles.favHabit}>
+                <Text style={[styles.tabText, { color: t.colors.dark_text }]}>Favorite habit</Text>
+                <Text style={styles.tabCount} numberOfLines={2}>{favoriteCurrentHabit.title}</Text>
+              </View>
+            </View>
+          )}
+          {favoriteHabit && (
+            <View style={styles.tabContainer}>
+              <View style={styles.biggestStreakContainer}>
+                <View>
+                  <Text style={[styles.tabText, { color: t.colors.dark_text }]}>Biggest Streak</Text>
+                </View>
+                <View>
+                  <View style={styles.streakContainer}>
+                    <Text style={styles.tabCount}>{favoriteHabit.longestStreak}</Text>
+                    <FireIcon width={16} height={16} />
+                    <Text style={styles.tabCount} numberOfLines={2}>{favoriteHabit.title}</Text>
+                  </View>
+                </View>
+
+              </View>
             </View>
           )}
         </View>
-        {profile?.name ? (
-          <Text style={styles.profileName}>{profile.name}</Text>
-        ) : null}
-      </View>
-      {/* Habits in Progress Tab */}
-      {profile && (
-        <View style={styles.tabContainer}>
-          <View style={styles.progressContainer}>
-            <Text style={[styles.tabText, { color: t.colors.dark_text }]}>Completed Habits</Text>
-            <Text style={styles.tabCount}>{profile.habitsCompletedCount}</Text>
-          </View>
-        </View>
-      )}
-      {profile && (
-        <View style={styles.tabContainer}>
-          <View style={styles.progressContainer}>
-            <Text style={[styles.tabText, { color: t.colors.dark_text }]}>Habits in Progress</Text>
-            <Text style={styles.tabCount}>{profile.associatedhabits.length}</Text>
-          </View>
-        </View>
-      )}
-      {/* Favorite habit by current streak */}
-      {favoriteCurrentHabit && (
-        <View style={styles.tabContainer}>
-          <View style={styles.progressContainer}>
-            <Text style={[styles.tabText, { color: t.colors.dark_text }]}>Favorite habit</Text>
-            <Text style={styles.tabCount} numberOfLines={2}>{favoriteCurrentHabit.title}</Text>
-          </View>
-        </View>
-      )}
-        {favoriteHabit && (
-        <View style={styles.tabContainer}>
-          <View style={styles.favoriteContainer}>
-            <View>
-              <Text style={[styles.tabText, { color: t.colors.dark_text }]}>Biggest Streak</Text>
-            </View>
-            <View>
-              <View style={styles.streakContainer}>
-                <Text style={styles.tabCount}>{favoriteHabit.longestStreak}</Text>
-                <FireIcon width={16} height={16} />
-                <Text style={styles.tabCount} numberOfLines={2}>{favoriteHabit.title}</Text>
-              </View>
-            </View>
 
-          </View>
-        </View>
-      )}
 
-      <View>
-        <Text style={[styles.badgesTitle, { color: t.colors.dark_text }]}>Badges</Text>
-      </View>
+        <View>
+          <Text style={[styles.badgesTitle, { color: t.colors.dark_text }]}>Badges</Text>
+        </View>
       </ScrollView>
     </View>
 
@@ -227,6 +230,9 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.s,
     fontFamily: theme.typography.fontFamily.semibold,
   },
+  mainContainer: {
+    gap: theme.gap.md,
+  },
   tabContainer: {
     ...theme.padding.horizontal.l,
     ...theme.size.full_width,
@@ -251,12 +257,12 @@ const styles = StyleSheet.create({
   tabText: {
     ...theme.size.full_width,
     color: theme.colors.dark_text,
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.s,
     fontFamily: theme.typography.fontFamily.medium,
   },
   tabCount: {
     color: theme.colors.primary,
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.sm,
     fontFamily: theme.typography.fontFamily.medium,
   },
   streakContainer: {
@@ -269,5 +275,28 @@ const styles = StyleSheet.create({
     color: theme.colors.dark_text,
     fontSize: theme.typography.sizes.md,
     fontFamily: theme.typography.fontFamily.semibold,
+    ...theme.padding.vertical.md,
+  },
+  favHabitContainer: {
+    ...theme.padding.horizontal.md,
+    ...theme.padding.vertical.xs,
+    ...theme.size.full_width,
+    backgroundColor: theme.colors.white,
+    borderWidth: theme.borderColor.borderSecondWidth,
+    borderColor: theme.borderColor.borderColor,
+    borderRadius: theme.borderRadius.md,
+  },
+  favHabit: {
+    ...theme.flex.row,
+    ...theme.align["space-between"],
+    ...theme.align["center"],
+    ...theme.size.full_width,
+    ...theme.padding.horizontal.xxl,
+  },
+  biggestStreakContainer: {
+    ...theme.flex.row,
+    ...theme.size.full_width,          
+    ...theme.align["space-between"],   
+    alignItems: 'center',              
   },
 });

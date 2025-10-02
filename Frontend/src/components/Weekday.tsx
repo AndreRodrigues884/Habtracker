@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
         ...theme.align["center"],
         ...theme.size.full_width,
         gap: theme.gap.sm,
+        ...theme.padding.vertical.md,
     },
     dayContainer: {
         ...theme.size.hug,

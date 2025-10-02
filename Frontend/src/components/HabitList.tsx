@@ -94,7 +94,7 @@ export const HabitList: React.FC<HabitListProps> = ({
       <View style={styles.card}>
         {/* Left side: Icon + text */}
         <View style={styles.left}>
-          {Icon && <Icon width={20} height={20} />}
+          {Icon && <Icon width={16} height={16} />}
           <View style={styles.textContainer}>
             <Text style={styles.title}>
               {title}
@@ -111,13 +111,13 @@ export const HabitList: React.FC<HabitListProps> = ({
           <Pressable style={styles.editButton} onPress={handleEdit}>
             <View style={styles.editButtonContent}>
               <Text style={styles.editButtonText}>Edit</Text>
-              <EditIcon width={16} height={16} />
+              <EditIcon width={12} height={12} />
             </View>
           </Pressable>
           <Pressable style={styles.deleteButton} onPress={handleDelete}>
             <View style={styles.deleteButtonContent}>
               <Text style={styles.deleteButtonText}>Delete</Text>
-              <DeleteIcon width={16} height={16} />
+              <DeleteIcon width={12} height={12} />
             </View>
           </Pressable>
         </View>
@@ -166,9 +166,10 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     gap: theme.gap.xs,
+    ...theme.flex.row,
   },
   title: {
-    fontSize: theme.typography.sizes.sm,
+    fontSize: theme.typography.sizes.s,
     fontFamily: theme.typography.fontFamily.semibold,
     color: theme.colors.dark_text,
   },
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
     gap: theme.gap.xs,
   },
   editButtonText: {
-    fontSize: theme.typography.sizes.s,
+    fontSize: theme.typography.sizes.xs,
     fontFamily: theme.typography.fontFamily.medium,
     color: theme.colors.primary,
   },
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
     gap: theme.gap.xs,
   },
   deleteButtonText: {
-    fontSize: theme.typography.sizes.s,
+    fontSize: theme.typography.sizes.xs,
     fontFamily: theme.typography.fontFamily.medium,
     color: theme.colors.red,
   },

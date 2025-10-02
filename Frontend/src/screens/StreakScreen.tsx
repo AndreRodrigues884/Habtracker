@@ -12,6 +12,7 @@ import LearningIcon from "../assets/icons/learning.svg";
 import CreativityIcon from "../assets/icons/creativity.svg";
 import LifestyleIcon from "../assets/icons/lifestyle.svg";
 import SocialIcon from "../assets/icons/social.svg";
+import FireIcon from '../assets/icons/fire.svg';
 
 const weekdayLabels = ["M", "T", "W", "T", "F", "S", "S"]; // Monday-first
 
@@ -44,26 +45,22 @@ function getStartOfWeekMonday(date: Date): Date {
 }
 
 function computeCompletedWeekdays(habit: any): boolean[] {
-  // If backend provides detailed days, prefer it:
-  if (Array.isArray(habit.completedDaysThisWeek) && habit.completedDaysThisWeek.length === 7) {
-    return habit.completedDaysThisWeek as boolean[];
-  }
+  const filled = new Array(7).fill(false);
+  if (!habit.completionDates || habit.completionDates.length === 0) return filled;
 
-  // Fallback heuristic: mark only the lastCompletionDate if it's within this week
-  const filled = new Array(7).fill(false) as boolean[];
-  if (!habit.lastCompletionDate) return filled;
-  const last = new Date(habit.lastCompletionDate);
-  const start = getStartOfWeekMonday(new Date());
-  const end = new Date(start);
-  end.setDate(start.getDate() + 7);
-  if (last >= start && last < end) {
-    // Map JS weekday (Sun=0..Sat=6) to Monday-first index 0..6
-    const jsDay = last.getDay();
-    const mondayFirstIndex = (jsDay + 6) % 7;
-    filled[mondayFirstIndex] = true;
-  }
+  const startOfWeek = getStartOfWeekMonday(new Date());
+
+  habit.completionDates.forEach((dateStr: string) => {
+    const d = new Date(dateStr);
+    const diff = Math.floor((d.getTime() - startOfWeek.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff >= 0 && diff < 7) {
+      filled[diff] = true;
+    }
+  });
+
   return filled;
 }
+
 
 export const StreakScreen = () => {
   const { token } = useContext(AuthContext);
@@ -96,12 +93,13 @@ export const StreakScreen = () => {
     return (
       <View style={styles.row}>
         <View style={styles.left}>
-          <View style={styles.iconWrap}>
-            <CategoryIcon category={item.category} />
-          </View>
+          <CategoryIcon category={item.category} />
           <View style={styles.titleWrap}>
-            <Text style={styles.habitTitle}>{item.title}</Text>
-            <Text style={styles.streakText}>Streak: {item.currentStreak}</Text>
+            <Text style={styles.habitTitle} numberOfLines={1}>{item.title}</Text>
+            <View style={styles.streakContainer}>
+              <FireIcon width={10} height={10} />
+              <Text style={styles.streakText}>{item.currentStreak} days</Text>
+            </View>
           </View>
         </View>
         <View style={styles.right}>
@@ -136,13 +134,12 @@ const styles = StyleSheet.create({
   container: {
     ...theme.padding.horizontal.xxl,
     paddingTop: theme.padding.vertical.xxl.paddingVertical,
-    ...theme.align["top-left"],
-    ...theme.size.full,
     ...theme.flex.column,
     gap: theme.gap.lg,
     backgroundColor: theme.colors.background,
+    flex: 1,
   },
-   title: {
+  title: {
     color: theme.colors.dark_text,
     fontSize: theme.typography.sizes.md,
     fontFamily: theme.typography.fontFamily.semibold,
@@ -155,24 +152,17 @@ const styles = StyleSheet.create({
     ...theme.size.full_width,
     backgroundColor: theme.colors.white,
     borderRadius: theme.borderRadius.md,
-    ...theme.padding.horizontal.l,
+    ...theme.padding.horizontal.md,
     ...theme.padding.vertical.xs,
     ...theme.flex.row,
     ...theme.align["space-between"],
-    ...theme.align["center"],
+    alignItems: 'center',
   },
   left: {
     ...theme.flex.row,
-    ...theme.align["center"],
+    alignItems: 'center',
     gap: theme.gap.s,
     flexShrink: 1,
-  },
-  iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.background,
-    ...theme.align["center"],
   },
   titleWrap: {
     flexShrink: 1,
@@ -181,6 +171,7 @@ const styles = StyleSheet.create({
     color: theme.colors.dark_text,
     fontSize: theme.typography.sizes.s,
     fontFamily: theme.typography.fontFamily.semibold,
+    maxWidth: 120, // limita largura do título
   },
   streakText: {
     color: theme.colors.primary,
@@ -190,11 +181,12 @@ const styles = StyleSheet.create({
   right: {
     ...theme.flex.row,
     gap: theme.gap.xs,
+    flexWrap: 'wrap', // permite quebrar linha se não couber
   },
   dayBox: {
-    minWidth: 26,
-    height: 26,
-    borderRadius: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 5,
     backgroundColor: theme.colors.white,
     borderWidth: theme.borderColor.borderWidth,
     borderColor: theme.borderColor.borderSecondColor,
@@ -206,10 +198,16 @@ const styles = StyleSheet.create({
   },
   dayBoxText: {
     color: theme.colors.dark_text,
-    fontSize: theme.typography.sizes.xs,
+    fontSize: theme.typography.sizes.xs - 1,
     fontFamily: theme.typography.fontFamily.medium,
   },
   dayBoxTextFilled: {
     color: theme.colors.white,
   },
+  streakContainer: {
+    ...theme.flex.row,
+    ...theme.align["center"],
+    gap: theme.gap.xs,
+    ...theme.size.hug,
+  }
 });

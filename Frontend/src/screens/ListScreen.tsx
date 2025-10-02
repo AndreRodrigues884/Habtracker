@@ -92,6 +92,7 @@ export const ListScreen = () => {
   return (
     <View style={[styles.container, { backgroundColor: t.colors.background }]}>
       <Header />
+      <Text style={[styles.title, { color: t.colors.dark_text }]}>Daily Habits</Text>
       
       {loading ? (
         renderLoadingState()
@@ -112,6 +113,7 @@ export const ListScreen = () => {
           {habits.length === 0 ? (
             renderEmptyState()
           ) : (
+            
             <View style={styles.habitContainer}>
               {habits.map((habit) => (
                 <HabitList
@@ -153,7 +155,7 @@ const styles = StyleSheet.create({
     ...theme.size.full_width,
   },
   scrollContent: {
-    paddingTop: theme.gap.lg,
+    paddingTop: theme.gap.md,
     flexGrow: 1,
      ...theme.size.full_width,
   },
@@ -192,5 +194,10 @@ const styles = StyleSheet.create({
     ...theme.typography.align.center,
     opacity: 0.7,
     lineHeight: 20,
+  },
+  title: {
+    color: theme.colors.dark_text,
+    fontSize: theme.typography.sizes.md,
+    fontFamily: theme.typography.fontFamily.semibold,
   },
 });

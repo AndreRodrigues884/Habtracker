@@ -136,6 +136,7 @@ const styles = StyleSheet.create({
     color: theme.colors.dark_text,
     fontSize: theme.typography.sizes.md,
     fontFamily: theme.typography.fontFamily.semibold,
+    paddingBottom: theme.gap.md
   },
   habitContainer: {
     ...theme.size.full_width,

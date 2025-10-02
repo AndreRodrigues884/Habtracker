@@ -254,21 +254,45 @@ const checkUserXpAchievements = async (req, res) => {
 
 const getUserHabits = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).populate('associatedhabits');
+    const user = await User.findById(req.user.userId).populate("associatedhabits");
 
     if (!user) {
-      return res.error('USER_NOT_FOUND');
+      return res.error("USER_NOT_FOUND");
     }
 
-    const habitsWithMeta = user.associatedhabits.map(habit => ({
-      ...habit.toObject(),
-      categoryMeta: CategoryConfig[habit.category],
-    }));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // início e fim da semana (domingo -> sábado)
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+    const habitsWithMeta = user.associatedhabits.map((habit) => {
+      const completedDaysThisWeek = new Array(7).fill(false);
+
+      (habit.completionDates || []).forEach((date) => {
+        const d = new Date(date);
+        if (d >= startOfWeek && d < endOfWeek) {
+          const jsDay = d.getDay(); // 0 = Domingo, 6 = Sábado
+          completedDaysThisWeek[jsDay] = true;
+        }
+      });
+
+      return {
+        ...habit.toObject(),
+        categoryMeta: CategoryConfig[habit.category],
+        completedDaysThisWeek,
+      };
+    });
 
     return res.status(200).json({ habits: habitsWithMeta });
   } catch (err) {
     console.error(err);
-    return res.error('USER_GET_HABITS_FAILED');
+    return res.error("USER_GET_HABITS_FAILED");
   }
 };
 
@@ -282,10 +306,11 @@ const completeHabit = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!habit || habit.userId.toString() !== userId) {
-      return res.error('HABIT_NOT_FOUND');
+      return res.error("HABIT_NOT_FOUND");
     }
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     // Determina início da semana (domingo)
     const startOfWeek = new Date(today);
@@ -296,31 +321,48 @@ const completeHabit = async (req, res) => {
     if (!habit.weekStartDate || new Date(habit.weekStartDate) < startOfWeek) {
       habit.weekStartDate = startOfWeek;
       habit.completedThisWeek = 0;
+      habit.completionDates = []; // limpa a semana antiga
     }
 
-    // Verifica se já foi completado no período da frequência
-    if (isHabitCompletedForPeriod(habit, today)) {
-      return res.error('HABIT_ALREADY_COMPLETED_FOR_PERIOD');
+    // Já foi completado hoje?
+    const alreadyCompletedToday = habit.completionDates?.some(
+      (d) => new Date(d).toDateString() === today.toDateString()
+    );
+
+    if (alreadyCompletedToday) {
+      return res.error("HABIT_ALREADY_COMPLETED_TODAY");
     }
+
+    // Marca o dia como concluído
+    habit.completionDates.push(today);
+    habit.lastCompletionDate = today;
+    habit.completedThisWeek += 1;
+    habit.completedCount += 1;
 
     // Atualiza streaks e progresso
     updateHabitAndUserProgress(habit, user, today);
 
-    // Atualiza completedThisWeek para frequências semanais múltiplas
-    if (['twice_per_week', 'three_times_per_week', 'four_times_per_week', 'five_times_per_week'].includes(habit.frequency)) {
-      habit.completedThisWeek += 1;
-
-      // Marca como completo se atingiu limite da semana
+    // Regras para frequências semanais múltiplas
+    if (
+      [
+        "twice_per_week",
+        "three_times_per_week",
+        "four_times_per_week",
+        "five_times_per_week",
+      ].includes(habit.frequency)
+    ) {
       const frequencyMap = {
         twice_per_week: 2,
         three_times_per_week: 3,
         four_times_per_week: 4,
-        five_times_per_week: 5
+        five_times_per_week: 5,
       };
       if (habit.completedThisWeek >= frequencyMap[habit.frequency]) {
         habit.isCompleted = true;
       }
-    } else if (habit.frequency === 'daily' || habit.frequency === 'weekly' || habit.frequency === 'biweekly' || habit.frequency === 'weekends') {
+    } else if (
+      ["daily", "weekly", "biweekly", "weekends"].includes(habit.frequency)
+    ) {
       habit.isCompleted = true;
     }
 
@@ -335,18 +377,18 @@ const completeHabit = async (req, res) => {
     await user.save();
 
     return res.status(200).json({
-      message: 'Hábito marcado como feito!',
+      message: "Hábito marcado como feito!",
       habit,
       xpGained: xpGranted,
       newLevel,
       unlockedAchievements,
     });
-
   } catch (error) {
     console.error(error);
-    return res.error('HABIT_COMPLETION_FAILED');
+    return res.error("HABIT_COMPLETION_FAILED");
   }
 };
+
 
 const updateAvatar = async (req, res) => {
   try {
