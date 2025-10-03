@@ -6,4 +6,5 @@ const auth = require('../middlewares/auth');
 router.get('/', auth, achievementController.getAchievements);
 router.get('/:type', auth, achievementController.getAchievementByType);
 
+
 module.exports = router;

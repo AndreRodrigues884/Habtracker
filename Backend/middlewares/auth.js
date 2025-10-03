@@ -5,7 +5,7 @@ module.exports = function (req, res, next) {
   const authHeader = req.headers?.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Token não fornecido' });
+    return res.status(401).json({ message: 'Token not provided' });
   }
 
   const token = authHeader.split(' ')[1];
@@ -13,11 +13,11 @@ module.exports = function (req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (!decoded.userId || !['user', 'admin'].includes(decoded.type)) {
-      return res.status(401).json({ message: 'Token inválido' });
+      return res.status(401).json({ message: 'Invalid oken' });
     }
     req.user = { userId: decoded.userId, type: decoded.type };
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Token inválido ou expirado' });
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
 };

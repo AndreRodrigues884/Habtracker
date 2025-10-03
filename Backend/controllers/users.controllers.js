@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const Habit = require('../models/Habit');
+const fs = require('fs');
+const path = require('path');
 const { CategoryConfig } = require('../enums/habit.enum');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -10,32 +12,37 @@ require('dotenv').config();
 
 
 const refreshToken = async (req, res) => {
-  const { refreshToken: providedRefreshToken } = req.body; 
+  const { refreshToken: providedRefreshToken } = req.body;
 
+  //Verify token exists
   if (!providedRefreshToken) {
     return res.error('AUTH_TOKEN_MISSING');
   }
 
   try {
+
+    //Verifies the received JWT token (refresh token) using the refresh secret key
     const decoded = jwt.verify(providedRefreshToken, process.env.JWT_REFRESH_SECRET);
 
+    // Checks if the decoded token type is really "refresh"
     if (decoded.tokenType !== 'refresh') {
       return res.error('AUTH_TOKEN_INVALID');
     }
 
     const user = await User.findById(decoded.userId);
-    
-    // ✅ Usa bcrypt.compare para verificar o hash
+
+    // Verify if user exist OR not have a refresh token
     if (!user || !user.refreshToken) {
       return res.error('AUTH_TOKEN_INVALID');
     }
+
 
     const isValidRefresh = await bcrypt.compare(providedRefreshToken, user.refreshToken);
     if (!isValidRefresh) {
       return res.error('AUTH_TOKEN_INVALID');
     }
 
-    // Gera access token
+    // Generate access token
     const newAccessToken = jwt.sign(
       { userId: user._id, type: user.type },
       process.env.JWT_SECRET,
@@ -54,25 +61,28 @@ const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    //Verify fields
     if (!name || !email || !password) {
       return res.error('REGISTER_MISSING_FIELDS');
     }
 
-    // Sanitização básica
+    // Basic sanitation
     const nameTrimmed = name.trim();
     const emailLower = email.toLowerCase().trim();
 
+    //Email rules
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailLower)) {
       return res.error('REGISTER_INVALID_EMAIL');
     }
 
+    //Password rules
     const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
     if (!pwdRegex.test(password)) {
       return res.error('REGISTER_INVALID_PASSWORD');
     }
 
-    // Verifica duplicação - mesma mensagem para evitar enumeração
+    // Verify existing User
     const existingUser = await User.findOne({
       $or: [
         { email: emailLower },
@@ -84,9 +94,13 @@ const register = async (req, res) => {
       return res.error('REGISTER_DUPLICATE_EMAIL');
     }
 
+    //Generates a "salt" to strengthen the password hash
     const salt = await bcrypt.genSalt(10);
+
+    //Encrypted password
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    //Create User
     const newUser = new User({
       name: nameTrimmed,
       email: emailLower,
@@ -95,7 +109,7 @@ const register = async (req, res) => {
 
     await newUser.save();
 
-    res.status(201).json({ message: 'Utilizador registado com sucesso!' });
+    res.status(201).json({ message: 'User registered successfully!' });
   } catch (error) {
     console.error('Erro no registo:', error.message);
     return res.status(500).json({ message: 'Erro no servidor' });
@@ -105,10 +119,9 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   const { identifier, password } = req.body;
 
-
-
+  //Verify fields
   if (!identifier || !password) {
-    console.log('❌ Campos em falta');
+    console.log('Missing fields');
     return res.error('LOGIN_MISSING_FIELDS');
   }
 
@@ -120,26 +133,22 @@ const login = async (req, res) => {
       ]
     }).select('+password +loginAttempts +isLocked +lockUntil +refreshToken');
 
-    
 
+
+    //Validate & compare password
     const validPassword = user
       ? await bcrypt.compare(password, user.password)
       : await bcrypt.compare(password, '$2b$10$fakehashfakehashfakehashfakehashfakehashfakehash');
 
-    
-
+    // Check if the account is blocked
     if (user && user.isLocked && user.lockUntil > Date.now()) {
-     
       return res.error('LOGIN_ACCOUNT_LOCKED');
     }
 
+    //Verify Credentials
     if (!user || !validPassword) {
-     
-      // ... resto do código
       return res.error('LOGIN_INVALID_CREDENTIALS');
     }
-
-   
 
     user.loginAttempts = 0;
     user.isLocked = false;
@@ -147,46 +156,51 @@ const login = async (req, res) => {
 
     // Verifica se JWT_SECRET existe
     if (!process.env.JWT_SECRET) {
-      console.error('❌ JWT_SECRET não definido!');
+      console.error('❌ JWT_SECRET not defined!');
       return res.status(500).json({ message: 'Configuração inválida' });
     }
 
     if (!process.env.JWT_REFRESH_SECRET) {
-      console.error('❌ JWT_REFRESH_SECRET não definido!');
+      console.error('❌ JWT_REFRESH_SECRET not defined!');
       return res.status(500).json({ message: 'Configuração inválida' });
     }
 
+
+    //Generate new access token
     const accessToken = jwt.sign(
       { userId: user._id, type: user.type },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_SECRET_EXPIRES_IN || '15m' }
     );
 
+    //Generate new refresh token
     const newRefreshToken = jwt.sign(
       { userId: user._id, type: user.type, tokenType: 'refresh' },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
     );
 
-   
 
+
+    //Encrypted refresh token
+    //Updates the last login date
     const hashedRefresh = await bcrypt.hash(newRefreshToken, 10);
     user.refreshToken = hashedRefresh;
     user.lastLogin = new Date();
-    
+
     await user.save();
-  
+
 
     let xpGranted = 0, newLevel = user.level, unlockedAchievements = [];
+    // Verify user type "user"
     if (user.type === 'user') {
       try {
+        // Try to apply the daily login reward
         ({ xpGranted, newLevel, unlockedAchievements } = await grantDailyLoginXp(user));
       } catch (err) {
-        console.warn('⚠️ Falha ao dar XP diário:', err.message);
+        console.warn('Daily XP failed to give:', err.message);
       }
     }
-
-   
 
     return res.status(200).json({
       id: user._id,
@@ -200,7 +214,7 @@ const login = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('💥 ERRO NO LOGIN:', {
+    console.error('LOGIN ERROR:', {
       message: err.message,
       stack: err.stack,
       timestamp: new Date().toISOString()
@@ -214,7 +228,10 @@ const login = async (req, res) => {
 
 const getUserLevel = async (req, res) => {
   try {
+    
     const userId = req.user.userId;
+
+    //Get level and xp from user
     const user = await User.findById(userId).select('level xp');
 
     if (!user) {
@@ -235,10 +252,10 @@ const checkUserXpAchievements = async (req, res) => {
 
     if (!user) return res.error('USER_NOT_FOUND');
 
-    // Verifica apenas achievements do tipo XP
+    // Create unlockedAchievements to check achievements
     const unlockedAchievements = await checkAndUnlockAchievements(user);
 
-    // Filtra apenas achievements do tipo 'xp'
+    // Filter achievements from xp
     const xpAchievements = unlockedAchievements.filter(a => a.type === 'xp');
 
     return res.status(200).json({
@@ -254,7 +271,13 @@ const checkUserXpAchievements = async (req, res) => {
 
 const getUserHabits = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).populate("associatedhabits");
+    const user = await User.findById(req.user.userId)
+      .populate({
+        path: "associatedhabits",
+        select: "title category frequency currentStreak longestStreak isCompleted lastCompletionDate completedThisWeek completedCount weekStartDate completionDates createdAt updatedAt",
+        options: { lean: true }
+      })
+      .lean();
 
     if (!user) {
       return res.error("USER_NOT_FOUND");
@@ -263,11 +286,12 @@ const getUserHabits = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // início e fim da semana (domingo -> sábado)
+    // Start week
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - today.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
 
+    // End week
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 7);
 
@@ -277,13 +301,13 @@ const getUserHabits = async (req, res) => {
       (habit.completionDates || []).forEach((date) => {
         const d = new Date(date);
         if (d >= startOfWeek && d < endOfWeek) {
-          const jsDay = d.getDay(); // 0 = Domingo, 6 = Sábado
+          const jsDay = d.getDay(); 
           completedDaysThisWeek[jsDay] = true;
         }
       });
 
       return {
-        ...habit.toObject(),
+        ...habit,
         categoryMeta: CategoryConfig[habit.category],
         completedDaysThisWeek,
       };
@@ -312,19 +336,19 @@ const completeHabit = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Determina início da semana (domingo)
+    // Start weeek
     const startOfWeek = new Date(today);
     startOfWeek.setHours(0, 0, 0, 0);
     startOfWeek.setDate(today.getDate() - today.getDay());
 
-    // Reset semanal se necessário
+    // Reste week
     if (!habit.weekStartDate || new Date(habit.weekStartDate) < startOfWeek) {
       habit.weekStartDate = startOfWeek;
       habit.completedThisWeek = 0;
-      habit.completionDates = []; // limpa a semana antiga
+      habit.completionDates = [];
     }
 
-    // Já foi completado hoje?
+    // Has it been completed today?
     const alreadyCompletedToday = habit.completionDates?.some(
       (d) => new Date(d).toDateString() === today.toDateString()
     );
@@ -333,16 +357,15 @@ const completeHabit = async (req, res) => {
       return res.error("HABIT_ALREADY_COMPLETED_TODAY");
     }
 
-    // Marca o dia como concluído
+    // Mark the day as complete
     habit.completionDates.push(today);
-    habit.lastCompletionDate = today;
     habit.completedThisWeek += 1;
-    habit.completedCount += 1;
+    
 
-    // Atualiza streaks e progresso
+    // Update streaks and progress
     updateHabitAndUserProgress(habit, user, today);
 
-    // Regras para frequências semanais múltiplas
+    // Rules for multiple weekly frequencies
     if (
       [
         "twice_per_week",
@@ -366,18 +389,18 @@ const completeHabit = async (req, res) => {
       habit.isCompleted = true;
     }
 
-    // Ganha XP
+    // Earn XP
     const xpGain = 10;
     const { xpGranted, newLevel } = await grantXpAndCheckLevelUp(user, xpGain);
 
-    // Conquistas
+    // Check achievements
     const unlockedAchievements = await checkAndUnlockAchievements(user, habit);
 
     await habit.save();
     await user.save();
 
     return res.status(200).json({
-      message: "Hábito marcado como feito!",
+      message: "Habit marked as done!",
       habit,
       xpGained: xpGranted,
       newLevel,
@@ -392,16 +415,32 @@ const completeHabit = async (req, res) => {
 
 const updateAvatar = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: 'Nenhuma imagem enviada' });
+    if (!req.file) return res.status(400).json({ message: 'No images sent' });
 
     const user = await User.findById(req.user.userId);
-    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Salva path relativo no banco
-    user.avatar = `/${req.file.path.replace(/\\/g, '/')}`; // garante path correto no Windows
+    // Remove old avatar from disk if it exists
+    if (user.avatar) {
+      try {
+        // user.avatar like '/uploads/avatars/xxx.jpg' → get relative path
+        const relativeFromRoot = user.avatar.startsWith('/') ? user.avatar.slice(1) : user.avatar;
+        if (relativeFromRoot.startsWith('uploads/avatars')) {
+          const absoluteOldPath = path.join(__dirname, '..', relativeFromRoot);
+          if (fs.existsSync(absoluteOldPath)) {
+            fs.unlinkSync(absoluteOldPath);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to remove previous avatar:', e.message);
+      }
+    }
+
+    // Save new relative path to database
+    user.avatar = `/${req.file.path.replace(/\\/g, '/')}`;
     await user.save();
 
-    // Cria URL completa para frontend
+    // Create full URL for frontend
     const avatarUrl = `${req.protocol}://${req.get('host')}${user.avatar}`;
 
     return res.status(200).json({ avatar: avatarUrl });
@@ -410,17 +449,20 @@ const updateAvatar = async (req, res) => {
     return res.status(500).json({ message: 'Erro ao atualizar avatar' });
   }
 };
+
 const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId)
 
-    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
+
+    //Gte profile fields
     const profile = {
       _id: user._id,
       name: user.name,
       email: user.email,
-      avatar: user.avatar ? `${req.protocol}://${req.get('host')}${user.avatar}` : null, // URL completa
+      avatar: user.avatar ? `${req.protocol}://${req.get('host')}${user.avatar}` : null,
       level: user.level,
       xp: user.xp,
       associatedhabits: user.associatedhabits.map(h => h._id),
@@ -435,7 +477,7 @@ const getUserProfile = async (req, res) => {
     return res.status(200).json(profile);
   } catch (err) {
     console.error('Erro ao buscar perfil:', err);
-    return res.status(500).json({ message: 'Erro ao buscar perfil do usuário' });
+    return res.status(500).json({ message: 'Error fetching user profile' });
   }
 };
 

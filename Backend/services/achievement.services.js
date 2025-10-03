@@ -4,6 +4,7 @@ const { updateLevel } = require("./level.service")
 const grantXpAndCheckLevelUp = async (user, xpAmount) => {
   user.xp += xpAmount;
 
+  //Check level
   const newLevel = updateLevel(user);
 
   await user.save();
@@ -13,16 +14,20 @@ const grantXpAndCheckLevelUp = async (user, xpAmount) => {
 
 
 const checkAndUnlockAchievements = async (user, habit = null) => {
+
+  //Get achievements
   const allAchievements = await Achievement.find();
+  //Get unlocked achievements
   const alreadyUnlockedIds = user.achievementsUnlocked.map(a => a.toString());
   const newlyUnlocked = [];
 
-  // Verifica cada achievement
+  // Verify each achievement
   for (const achievement of allAchievements) {
     if (alreadyUnlockedIds.includes(achievement._id.toString())) continue;
 
     let qualifies = false;
 
+    //Check achievements by type
     switch (achievement.type) {
       case 'xp':
         if (user.xp >= achievement.threshold) qualifies = true;
@@ -40,7 +45,7 @@ const checkAndUnlockAchievements = async (user, habit = null) => {
 
       let xpReward = 0;
 
-      // Só aplica XP se o achievement tiver rewardXp definido
+      // Only applies XP if the achievement has rewardXp set
       if (achievement.rewardXp && achievement.rewardXp > 0) {
         xpReward = achievement.rewardXp;
         await grantXpAndCheckLevelUp(user, xpReward);

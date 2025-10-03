@@ -94,4 +94,9 @@ const HabitSchema = new mongoose.Schema({
   }
 });
 
+// Performance indexes
+HabitSchema.index({ userId: 1, title: 1 });
+HabitSchema.index({ userId: 1, weekStartDate: 1 });
+HabitSchema.index({ userId: 1, lastCompletionDate: -1 });
+
 module.exports = mongoose.model('Habit', HabitSchema);

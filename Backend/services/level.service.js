@@ -1,11 +1,11 @@
-// Função central: atualiza o nível de acordo com o XP
+// updates the level according to XP
 const updateLevel = (user) => {
   const xpPerLevel = 100;
 
-  // Calcula o nível baseado no XP total
+  //Calculates level based on total XP
   const newLevel = Math.floor(user.xp / xpPerLevel) + 1;
 
-  // Atualiza se mudou
+  // Update if changed
   if (newLevel > user.level) {
     user.level = newLevel;
   }
