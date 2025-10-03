@@ -17,9 +17,7 @@ export const useXpAchievements = () => {
       const res = await getUserXpAchievements(token);
       if (!res) return;
 
-   
-
-      // Atualiza o user context com nível e XP
+      // Update user context with level and XP
       setUser({
         ...user,
         level: res.level,
@@ -27,7 +25,7 @@ export const useXpAchievements = () => {
         xpGrantedToday: user.xpGrantedToday,
       });
 
-      // Se houver achievements desbloqueados pelo endpoint, abre modal
+      // If there are achievements unlocked by the endpoint, open modal
       if (res.unlockedAchievements?.length > 0) {
         
         setXpAchievements(res.unlockedAchievements);
@@ -37,7 +35,7 @@ export const useXpAchievements = () => {
       }
     } catch (err: any) {
       console.log(
-        "Erro ao buscar achievements XP:",
+        "Error fetching XP achievements:",
         err.response?.data || err.message
       );
     }
@@ -52,7 +50,7 @@ export const useXpAchievements = () => {
     setXpAchievements(pending);
     showModal(pending[0]);
 
-    // Limpa os pending achievements após mostrar a modal
+   // Clear pending achievements after showing modal
     setUser({ ...user, pendingAchievements: [] });
   }, [user?.pendingAchievements, setUser, showModal]);
 

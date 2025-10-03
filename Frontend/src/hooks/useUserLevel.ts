@@ -25,7 +25,7 @@ export const useUserLevel = () => {
         setLevel(res.level);
         setXp(res.xp);
       } catch (err: any) {
-        console.log("Erro ao buscar level:", err.response?.data || err.message);
+        console.log("Error fetching level:", err.response?.data || err.message);
       } finally {
         setLoading(false);
       }

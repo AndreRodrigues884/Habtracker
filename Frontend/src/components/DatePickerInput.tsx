@@ -4,8 +4,6 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { theme } from "../styles/theme";
 import { DatePickerInputProps } from "../types/Components";
 
-
-
 export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   label,
   date,
@@ -38,7 +36,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     if (date) {
       return formatDate(date);
     }
-    return placeholder || "Selecionar data";
+    return placeholder || "Select Date";
   };
 
   return (

@@ -3,6 +3,7 @@ import { theme as lightBase } from "../styles/theme";
 
 type ThemeType = typeof lightBase;
 
+// Function that creates a dark theme from the light theme
 const buildDarkTheme = (base: ThemeType): ThemeType => {
   return {
     ...base,
@@ -31,8 +32,11 @@ interface ThemeContextValue {
   toggleTheme: () => void;
 }
 
+// Creates the context
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
+
+// Provider of the theme that surrounds the application
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDark, setIsDark] = useState(false);
 

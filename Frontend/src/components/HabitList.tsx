@@ -44,22 +44,22 @@ export const HabitList: React.FC<HabitListProps> = memo(({
     if (!user) return;
 
     Alert.alert(
-      "Confirmar Exclusão",
-      "Tens a certeza de que queres eliminar este hábito?",
+      "Confirm Deletion",
+      "Are you sure you want to break this habit?",
       [
         {
-          text: "Cancelar",
+          text: "Cancel",
           style: "cancel",
         },
         {
-          text: "Sim",
+          text: "Yes",
           onPress: async () => {
             try {
               await deleteUserHabit(user.token, habitId);
               if (onDeleted) onDeleted(habitId);
             } catch (err) {
-              console.error("Erro ao deletar hábito:", err);
-              Alert.alert("Erro", "Não foi possível eliminar o hábito.");
+              console.error("Error deleting habit:", err);
+              Alert.alert("Error", "It was not possible to eliminate the habit.");
             }
           },
           style: "destructive",
@@ -141,7 +141,8 @@ const styles = StyleSheet.create({
   container: {
     ...theme.size.full_width,
     marginBottom: theme.gap.s,
-    ...theme.size.full_width,               
+    ...theme.size.full_width,   
+    flex: 1            
   },
   card: {
     ...theme.flex.row,

@@ -3,8 +3,6 @@ import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { theme } from "../styles/theme";
 import { Props } from "../types/Components";
 
-
-
 export const PrimaryButton: React.FC<Props> = ({ title, onPress }) => (
   <TouchableOpacity
     onPress={onPress}

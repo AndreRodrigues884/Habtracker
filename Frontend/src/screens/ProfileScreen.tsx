@@ -1,98 +1,29 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView, RefreshControl } from "react-native";
-import * as ImagePicker from 'expo-image-picker';
+import React, { useContext } from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
 import { Header } from "../components/Header";
 import { theme } from "../styles/theme";
 import { useThemeContext } from "../contexts/ThemeContext";
-import { getUserProfile, uploadUserAvatar } from "../services/userService";
 import { AuthContext } from "../contexts/AuthContext";
-import { User } from "../types/User";
-import { getUserHabits } from "../services/habitService";
-import { Habit } from "../types/Habit";
 import FireIcon from '../assets/icons/fire.svg';
+import { useUserProfile } from "../hooks/useUserProfile";
 
 
 export const ProfileScreen = () => {
   const { theme: t } = useThemeContext();
+  const { token, setUser } = useContext(AuthContext);
 
-  const { token, user, setUser } = useContext(AuthContext);
-  const [profile, setProfile] = useState<User | null>(null);
-  const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatar || null);
-  const [favoriteHabit, setFavoriteHabit] = useState<Habit | null>(null);
-  const [favoriteCurrentHabit, setFavoriteCurrentHabit] = useState<Habit | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [categoryStats, setCategoryStats] = useState<{ label: string; count: number }[]>([]);
+  const {
+    profile,
+    avatarUri,
+    favoriteHabit,
+    favoriteCurrentHabit,
+    categoryStats,
+    refreshing,
+    onRefresh,
+    pickImage,
+  } = useUserProfile(token, setUser);
 
-
-
-  const fetchData = useCallback(async () => {
-    if (!token) return;
-    const data = await getUserProfile(token);
-    setProfile(data);
-    setAvatarUri(data.avatar);
-    const habits: Habit[] = await getUserHabits(token);
-    if (!habits || habits.length === 0) {
-      setFavoriteHabit(null);
-      setFavoriteCurrentHabit(null);
-      setCategoryStats([]);
-    } else {
-      const topLongest = habits.reduce((max, h) => (h.longestStreak > max.longestStreak ? h : max), habits[0]);
-      const topCurrent = habits.reduce((max, h) => (h.currentStreak > max.currentStreak ? h : max), habits[0]);
-      setFavoriteHabit(topLongest);
-      setFavoriteCurrentHabit(topCurrent);
-
-      // Aggregate: completions this week by category
-      const counts: Record<string, number> = {};
-      for (const h of habits) {
-        const weekArr = (h as any).completedDaysThisWeek as boolean[] | undefined;
-        const completedThisWeek = Array.isArray(weekArr)
-          ? weekArr.reduce((sum, v) => sum + (v ? 1 : 0), 0)
-          : 0;
-        counts[h.category] = (counts[h.category] || 0) + completedThisWeek;
-      }
-      const stats = Object.entries(counts)
-        .map(([label, count]) => ({ label, count }))
-        .filter(row => row.count > 0)
-        .sort((a, b) => b.count - a.count);
-      setCategoryStats(stats);
-    }
-  }, [token]);
-
-  // Carrega dados do usuário ao montar
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchData();
-    setRefreshing(false);
-  }, [fetchData]);
-
-  // Escolher imagem
-  const pickImage = useCallback(async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return Alert.alert("Permissão necessária", "Permita acesso às fotos");
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      if (token) {
-        const data = await uploadUserAvatar(token, uri);
-        setAvatarUri(data.avatar);          // URL completa
-        setProfile(prev => prev ? { ...prev, avatar: data.avatar } : prev);
-        setUser(prev => prev ? { ...prev, avatar: data.avatar } : prev);
-      }
-    }
-  }, [token, setUser]);
-
-  if (!profile) return <Text>Carregando...</Text>;
+  if (!profile) return <ActivityIndicator size="large" color={t.colors.primary} />
 
 
 
@@ -194,7 +125,7 @@ export const ProfileScreen = () => {
                   <Text style={[styles.chartLabel, { color: t.colors.white }]} numberOfLines={1}>
                     {row.label}
                   </Text>
-                  <View style={[styles.chartBarBg, { backgroundColor: t.colors.white, borderColor: t.borderColor?.borderSecondColor || '#eee' }] }>
+                  <View style={[styles.chartBarBg, { backgroundColor: t.colors.white, borderColor: t.borderColor?.borderSecondColor || '#eee' }]}>
                     <View style={[styles.chartBarFill, { width: `${pct * 100}%`, backgroundColor: t.colors.primary }]} />
                   </View>
                   <Text style={[styles.chartValue, { color: t.colors.primary }]}>{row.count}</Text>
@@ -372,8 +303,8 @@ const styles = StyleSheet.create({
   },
   biggestStreakContainer: {
     ...theme.flex.row,
-    ...theme.size.full_width,          
-    ...theme.align["space-between"],   
-    alignItems: 'center',              
+    ...theme.size.full_width,
+    ...theme.align["space-between"],
+    alignItems: 'center',
   },
 });

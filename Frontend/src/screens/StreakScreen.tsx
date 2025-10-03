@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.white,
     borderRadius: theme.borderRadius.md,
     ...theme.padding.horizontal.md,
-    ...theme.padding.vertical.xs,
+    ...theme.padding.vertical.sm,
     ...theme.flex.row,
     ...theme.align["space-between"],
     alignItems: 'center',

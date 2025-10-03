@@ -38,22 +38,14 @@ const frequencies = [
   { value: 'weekends', label: 'Weekends' },
 ];
 
-export const EditHabitModal: React.FC<EditHabitModalProps> = ({
-  visible,
-  onClose,
-  habit,
-  token,
-  onHabitUpdated,
-}) => {
+export const EditHabitModal: React.FC<EditHabitModalProps> = ({visible, onClose, habit, token, onHabitUpdated}) => {
   const [title, setTitle] = useState(habit.title);
   const [description, setDescription] = useState(habit.description || '');
   const [category, setCategory] = useState<string>(habit.category);
   const [frequency, setFrequency] = useState<string>(habit.frequency);
   const [intention, setIntention] = useState(habit.intention || '');
   const [trigger, setTrigger] = useState(habit.trigger || '');
-  const [endDate, setEndDate] = useState<Date | null>(
-    habit.endDate ? new Date(habit.endDate) : null
-  );
+  const [endDate, setEndDate] = useState<Date | null>(habit.endDate ? new Date(habit.endDate) : null);
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {

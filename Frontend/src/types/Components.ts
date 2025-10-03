@@ -1,4 +1,5 @@
 import { TextInputProps } from "react-native";
+import { Achievement } from "./Achievements";
 
 export interface WeekDay {
     label: string;       
@@ -68,4 +69,10 @@ export interface PasswordInputProps {
     value: string;
     onChangeText: (text: string) => void;
     placeholder?: string;
+}
+
+export interface AchievementModalProps {
+    achievement: Achievement;
+    onClaim: () => void;
+    isVisible: boolean;
 }

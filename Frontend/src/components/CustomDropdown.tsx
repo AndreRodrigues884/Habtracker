@@ -32,7 +32,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       const option = options.find(opt => opt.value === selectedValue);
       return option ? option.label : selectedValue;
     }
-    return placeholder || `Selecionar ${label.toLowerCase()}`;
+    return placeholder || `Select ${label.toLowerCase()}`;
   };
 
   return (

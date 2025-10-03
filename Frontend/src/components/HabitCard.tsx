@@ -11,7 +11,6 @@ import CreativityIcon from '../assets/icons/creativity.svg';
 import FireIcon from '../assets/icons/fire.svg';
 import CheckIcon from '../assets/icons/check.svg';
 
-
 const CategoryIcons: Record<string, any> = {
     health: HealthIcon,
     productivity: ProductivityIcon,

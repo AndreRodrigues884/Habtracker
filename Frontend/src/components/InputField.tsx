@@ -10,7 +10,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   secureTextEntry = false,
   ...props
 }) => {
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword] = useState(false);
 
   return (
   <View>

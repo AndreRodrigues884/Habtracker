@@ -1,15 +1,11 @@
-/* O que são: mecanismo do React para compartilhar dados entre componentes sem precisar passar props manualmente em cada nível da árvore.
-
-Exemplos comuns:
-AuthContext → guarda token e info do usuário logado.
-*/
-
-import React, { createContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { User, AuthResponse, LoginData, RegisterData, AuthContextData } from "../types/User";
+import { AuthResponse, LoginData, RegisterData, AuthContextData } from "../types/User";
 import { loginUser, registerUser } from "../services/authService";
+import { useAuthState } from "../hooks/useAuthState";
 
 
+// Creates the authentication context with default values
 export const AuthContext = createContext<AuthContextData>({
   user: null,
   token: null,
@@ -19,22 +15,9 @@ export const AuthContext = createContext<AuthContextData>({
   setUser: () => { },
 });
 
+// Wraps the application and provides the context
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AuthResponse | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  // Persistência
-  useEffect(() => {
-    const loadUser = async () => {
-      const storedToken = await AsyncStorage.getItem("token");
-      const storedUser = await AsyncStorage.getItem("user");
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      }
-    };
-    loadUser();
-  }, []);
+  const { user, setUser, token, setToken } = useAuthState();
 
   const register = async (data: RegisterData) => {
     try {
@@ -47,7 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (data: LoginData) => {
     try {
-      const res: AuthResponse = await loginUser(data); // já guarda tokens internamente
+      const res: AuthResponse = await loginUser(data);
 
       const userData = {
         ...res,
@@ -57,9 +40,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         pendingAchievements: res.unlockedAchievements ?? [],
       };
 
-      // AsyncStorage já foi atualizado no loginUser, só falta o user
       await AsyncStorage.setItem("user", JSON.stringify(userData));
 
+      // Update context with token and user
       setToken(res.token);
       setUser(userData);
 
@@ -73,10 +56,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setToken(null);
     await AsyncStorage.removeItem("token");
-    await AsyncStorage.removeItem("refreshToken"); // ✅
+    await AsyncStorage.removeItem("refreshToken"); 
     await AsyncStorage.removeItem("user");
   };
 
+  // Returns context for the entire application
   return (
     <AuthContext.Provider value={{ user, token, register, login, logout, setUser }}>
       {children}

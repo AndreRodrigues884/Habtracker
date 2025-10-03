@@ -9,7 +9,7 @@ export const UserXPHeader: React.FC<UserXPHeaderProps> = ({
   currentXp,
   maxXp = 100, 
 }) => {
-  // calcula porcentagem da barra
+  
   const progressPercent = ((currentXp % maxXp) / maxXp) * 100;
 
   return (

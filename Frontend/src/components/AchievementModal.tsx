@@ -1,15 +1,9 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet, Modal, Dimensions } from "react-native";
-import { Achievement } from "../types/Achievements";
 import { theme } from "../styles/theme";
+import { AchievementModalProps } from "../types/Components";
 
 const { height: screenHeight } = Dimensions.get('window');
-
-interface AchievementModalProps {
-    achievement: Achievement;
-    onClaim: () => void;
-    isVisible: boolean;
-}
 
 export const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, onClaim, isVisible }) => { 
     
