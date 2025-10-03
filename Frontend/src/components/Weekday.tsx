@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { theme } from "../styles/theme";
 import { WeekCalendarProps, WeekDay } from "../types/Components";
@@ -17,7 +17,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({ onDaySelect }) => {
     if (onDaySelect) onDaySelect(today);
   }, []);
 
-    const generateWeekAroundToday = () => {
+    const generateWeekAroundToday = useCallback(() => {
     const today = new Date();
     const days: WeekDay[] = [];
 
@@ -34,12 +34,12 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({ onDaySelect }) => {
     }
 
     setWeekDays(days);
-  };
+  }, []);
 
-    const handleDayPress = (day: WeekDay) => {
+    const handleDayPress = useCallback((day: WeekDay) => {
     setSelectedDate(day.fullDate);
     if (onDaySelect) onDaySelect(day.fullDate);
-  };
+  }, [onDaySelect]);
 
     return (
     <View style={styles.container}>

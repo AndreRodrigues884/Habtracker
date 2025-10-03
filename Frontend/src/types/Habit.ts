@@ -99,6 +99,7 @@ export interface Habit {
   completedThisWeek: number;
   completedCount: number;
   weekStartDate?: Date;
+  completionDates?: Date[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -51,3 +51,10 @@ export interface AuthContextData {
   setUser: React.Dispatch<React.SetStateAction<AuthResponse | null>>;
 }
 
+export interface TokenPayload {
+  userId: string;
+  type: string;
+  exp: number;
+  iat: number;
+}
+

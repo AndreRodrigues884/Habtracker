@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     ...theme.padding.vertical.sm,
     ...theme.flex.row,
      gap: theme.gap.s,
-     width: 280,
+     width: 260,
      ...theme.align["center"],
   },
   name: {

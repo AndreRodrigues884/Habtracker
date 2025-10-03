@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useCallback } from "react";
 import { View, Text, Pressable, StyleSheet, Modal, TouchableOpacity, Switch } from "react-native";
 import { theme } from "../styles/theme";
 import { useThemeContext } from "../contexts/ThemeContext";
@@ -15,19 +15,19 @@ export const Header: React.FC = () => {
     const { logout } = useContext(AuthContext);
     const [sidebarVisible, setSidebarVisible] = useState(false);
     const { isDark, toggleTheme, theme: t } = useThemeContext();
-    const handleMenuPress = () => {
+    const handleMenuPress = useCallback(() => {
         setSidebarVisible(true);
-    };
+    }, []);
 
-    const handleLogout = async () => {
+    const handleLogout = useCallback(async () => {
         setSidebarVisible(false); // fecha sidebar antes de logout
         await logout();
         navigation.replace("Login");
-    };
+    }, [logout, navigation]);
 
-    const closeSidebar = () => {
+    const closeSidebar = useCallback(() => {
         setSidebarVisible(false);
-    };
+    }, []);
 
     return (
         <View style={[styles.container, { backgroundColor: t.colors.background }]}>

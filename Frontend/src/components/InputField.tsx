@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { View, TextInput, TextInputProps, StyleSheet } from "react-native";
+import { View, TextInput, StyleSheet } from "react-native";
 import { theme } from "../styles/theme";
+import { InputFieldProps } from "../types/Components";
 
-interface InputFieldProps extends TextInputProps {
-  placeholder: string;
-  secureTextEntry?: boolean;
-}
+
 
 export const InputField: React.FC<InputFieldProps> = ({
   placeholder,

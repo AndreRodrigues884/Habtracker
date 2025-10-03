@@ -21,6 +21,7 @@ export const ProfileScreen = () => {
   const [favoriteHabit, setFavoriteHabit] = useState<Habit | null>(null);
   const [favoriteCurrentHabit, setFavoriteCurrentHabit] = useState<Habit | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [categoryStats, setCategoryStats] = useState<{ label: string; count: number }[]>([]);
 
 
 
@@ -33,11 +34,27 @@ export const ProfileScreen = () => {
     if (!habits || habits.length === 0) {
       setFavoriteHabit(null);
       setFavoriteCurrentHabit(null);
+      setCategoryStats([]);
     } else {
       const topLongest = habits.reduce((max, h) => (h.longestStreak > max.longestStreak ? h : max), habits[0]);
       const topCurrent = habits.reduce((max, h) => (h.currentStreak > max.currentStreak ? h : max), habits[0]);
       setFavoriteHabit(topLongest);
       setFavoriteCurrentHabit(topCurrent);
+
+      // Aggregate: completions this week by category
+      const counts: Record<string, number> = {};
+      for (const h of habits) {
+        const weekArr = (h as any).completedDaysThisWeek as boolean[] | undefined;
+        const completedThisWeek = Array.isArray(weekArr)
+          ? weekArr.reduce((sum, v) => sum + (v ? 1 : 0), 0)
+          : 0;
+        counts[h.category] = (counts[h.category] || 0) + completedThisWeek;
+      }
+      const stats = Object.entries(counts)
+        .map(([label, count]) => ({ label, count }))
+        .filter(row => row.count > 0)
+        .sort((a, b) => b.count - a.count);
+      setCategoryStats(stats);
     }
   }, [token]);
 
@@ -53,7 +70,7 @@ export const ProfileScreen = () => {
   }, [fetchData]);
 
   // Escolher imagem
-  const pickImage = async () => {
+  const pickImage = useCallback(async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return Alert.alert("Permissão necessária", "Permita acesso às fotos");
 
@@ -73,7 +90,7 @@ export const ProfileScreen = () => {
         setUser(prev => prev ? { ...prev, avatar: data.avatar } : prev);
       }
     }
-  };
+  }, [token, setUser]);
 
   if (!profile) return <Text>Carregando...</Text>;
 
@@ -162,6 +179,30 @@ export const ProfileScreen = () => {
           )}
         </View>
 
+
+        {/* Category overview (horizontal bars) */}
+        <View style={styles.chartSection}>
+          <Text style={[styles.badgesTitle, { color: t.colors.white }]}>This Week by Category</Text>
+          {categoryStats.length === 0 ? (
+            <Text style={[{ fontSize: theme.typography.sizes.s, fontFamily: theme.typography.fontFamily.regular, color: t.colors.dark_text, opacity: 0.7 }]}>No habits yet</Text>
+          ) : (
+            categoryStats.map((row) => {
+              const max = Math.max(...categoryStats.map(s => s.count)) || 1;
+              const pct = Math.min(1, row.count / max);
+              return (
+                <View key={row.label} style={styles.chartRow}>
+                  <Text style={[styles.chartLabel, { color: t.colors.white }]} numberOfLines={1}>
+                    {row.label}
+                  </Text>
+                  <View style={[styles.chartBarBg, { backgroundColor: t.colors.white, borderColor: t.borderColor?.borderSecondColor || '#eee' }] }>
+                    <View style={[styles.chartBarFill, { width: `${pct * 100}%`, backgroundColor: t.colors.primary }]} />
+                  </View>
+                  <Text style={[styles.chartValue, { color: t.colors.primary }]}>{row.count}</Text>
+                </View>
+              );
+            })
+          )}
+        </View>
 
         <View>
           <Text style={[styles.badgesTitle, { color: t.colors.dark_text }]}>Badges</Text>
@@ -275,7 +316,43 @@ const styles = StyleSheet.create({
     color: theme.colors.dark_text,
     fontSize: theme.typography.sizes.md,
     fontFamily: theme.typography.fontFamily.semibold,
-    ...theme.padding.vertical.md,
+    ...theme.padding.vertical.sm,
+  },
+  chartSection: {
+    marginTop: theme.gap.md,
+    ...theme.padding.horizontal.md,
+    ...theme.padding.vertical.xs,
+    ...theme.size.full_width,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.borderRadius.md,
+  },
+  chartRow: {
+    ...theme.flex.row,
+    ...theme.align["center"],
+    gap: theme.gap.xs,
+    ...theme.padding.vertical.xs,
+  },
+  chartLabel: {
+    width: 90,
+    fontSize: theme.typography.sizes.xs,
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  chartBarBg: {
+    flex: 1,
+    height: 10,
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: theme.borderColor.borderSecondWidth,
+    overflow: 'hidden',
+  },
+  chartBarFill: {
+    height: '100%',
+    borderRadius: theme.borderRadius.sm,
+  },
+  chartValue: {
+    minWidth: 24,
+    textAlign: 'right',
+    fontSize: theme.typography.sizes.xs,
+    fontFamily: theme.typography.fontFamily.medium,
   },
   favHabitContainer: {
     ...theme.padding.horizontal.md,

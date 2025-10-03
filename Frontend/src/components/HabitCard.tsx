@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useMemo } from "react";
 import { View, Text, StyleSheet, Pressable, Image } from "react-native";
 import { theme } from "../styles/theme";
 import { HabitCardProps } from "../types/Habit";
@@ -21,8 +21,8 @@ const CategoryIcons: Record<string, any> = {
     social: SocialIcon,
 };
 
-export const HabitCard: React.FC<HabitCardProps> = ({ category, title, currentStreak, isCompleted = false, onComplete, style}) => {
-    const Icon = CategoryIcons[category];
+export const HabitCard: React.FC<HabitCardProps> = memo(({ category, title, currentStreak, isCompleted = false, onComplete, style}) => {
+    const Icon = useMemo(() => CategoryIcons[category], [category]);
     return (
           <View style={[styles.container, style]}>
             <View style={styles.card}>
@@ -53,7 +53,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({ category, title, currentSt
         </View>
 
     );
-};
+});
 
 const styles = StyleSheet.create({
     container: {

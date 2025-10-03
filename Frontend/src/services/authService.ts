@@ -1,15 +1,9 @@
 // services/authService.ts
 import api from "./api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { RegisterData, LoginData, AuthResponse } from "../types/User";
+import { RegisterData, LoginData, AuthResponse, TokenPayload } from "../types/User";
 import { jwtDecode } from 'jwt-decode';
 
-interface TokenPayload {
-  userId: string;
-  type: string;
-  exp: number;
-  iat: number;
-}
 
 export const registerUser = async (data: RegisterData): Promise<AuthResponse> => {
   const res = await api.post("/habtracker/users/register", data);

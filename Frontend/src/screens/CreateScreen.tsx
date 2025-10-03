@@ -117,27 +117,29 @@ export const CreateScreen = () => {
   return (
     <KeyboardAvoidingView
       style={[styles.mainContainer, { backgroundColor: t.colors.background }]}
+      behavior="position" enabled keyboardVerticalOffset={100}
     >
       <Header />
-      <View style={styles.buttonContainer}>
-        <Pressable
-          style={[styles.button, loading && styles.disabledButton]}
-          onPress={handleCreateHabit}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>
-            {loading ? "..." : "Create Habit"}
-          </Text>
-        </Pressable>
-      </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.formContainer}>
 
+        <View style={styles.buttonContainer}>
+          <Pressable
+            style={[styles.button, loading && styles.disabledButton]}
+            onPress={handleCreateHabit}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>
+              {loading ? "..." : "Create Habit"}
+            </Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.formContainer}>
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: t.colors.dark_text }]}>Title *</Text>
             <TextInput
@@ -164,37 +166,45 @@ export const CreateScreen = () => {
             />
           </View>
 
-          <CustomDropdown
-            label="Category *"
-            options={categories}
-            selectedValue={category}
-            onSelect={setCategory}
-            placeholder="Select category"
-          />
+          <View style={styles.inputGroup}>
+            <CustomDropdown
+              label="Category *"
+              options={categories}
+              selectedValue={category}
+              onSelect={setCategory}
+              placeholder="Select category"
+            />
+          </View>
 
-          <CustomDropdown
-            label="Frequency *"
-            options={frequencies}
-            selectedValue={frequency}
-            onSelect={setFrequency}
-            placeholder="Select frequency"
-          />
+          <View style={styles.inputGroup}>
+            <CustomDropdown
+              label="Frequency *"
+              options={frequencies}
+              selectedValue={frequency}
+              onSelect={setFrequency}
+              placeholder="Select frequency"
+            />
+          </View>
 
-          <DatePickerInput
-            label="Start Date *"
-            date={startDate}
-            onDateChange={(date) => setStartDate(date)}
-            minimumDate={new Date()}
-          />
+          <View style={styles.inputGroup}>
+            <DatePickerInput
+              label="Start Date *"
+              date={startDate}
+              onDateChange={(date) => setStartDate(date)}
+              minimumDate={new Date()}
+            />
+          </View>
 
-          <DatePickerInput
-            label="End Date"
-            date={endDate}
-            onDateChange={(date) => setEndDate(date)}
-            optional
-            minimumDate={startDate}
-            placeholder="End Date (optional)"
-          />
+          <View style={styles.inputGroup}>
+            <DatePickerInput
+              label="End Date"
+              date={endDate}
+              onDateChange={(date) => setEndDate(date)}
+              optional
+              minimumDate={startDate}
+              placeholder="End Date (optional)"
+            />
+          </View>
 
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: t.colors.dark_text }]}>Trigger</Text>
@@ -241,7 +251,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     ...theme.size.full_width,
-    paddingTop: theme.gap.xs,
+    paddingTop: theme.gap.sm,
   },
   sectionTitle: {
     fontSize: theme.typography.sizes.lg,
@@ -251,8 +261,9 @@ const styles = StyleSheet.create({
     ...theme.typography.align.center,
   },
   inputGroup: {
-    marginBottom: theme.gap.md,
-    ...theme.size.full_width
+    marginBottom: theme.gap.xs,
+    ...theme.size.full_width,
+    ...theme.padding.vertical.xs
   },
   label: {
     fontSize: theme.typography.sizes.sm,
@@ -272,12 +283,12 @@ const styles = StyleSheet.create({
     color: theme.colors.dark_text,
   },
   textArea: {
-    minHeight: 80,
+    minHeight: 100,
     textAlignVertical: "top",
   },
   buttonContainer: {
-
     paddingVertical: theme.gap.md,
+    paddingTop: theme.gap.xl,
     ...theme.size.full_width,
   },
   button: {

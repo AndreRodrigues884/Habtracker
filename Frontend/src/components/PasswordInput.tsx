@@ -4,12 +4,8 @@ import { theme } from "../styles/theme";
 
 import EyeIcon from "../assets/icons/eye.svg";
 import EyeOffIcon from "../assets/icons/eye-off.svg";
+import { PasswordInputProps } from "../types/Components";
 
-interface PasswordInputProps {
-    value: string;
-    onChangeText: (text: string) => void;
-    placeholder?: string;
-}
 
 export const PasswordInput: React.FC<PasswordInputProps> = ({
     value,

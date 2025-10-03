@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo, useMemo, useCallback } from "react";
 import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
 import { theme } from "../styles/theme";
 import { HabitListProps } from "../types/Habit";
@@ -24,7 +24,7 @@ const CategoryIcons: Record<string, any> = {
   social: SocialIcon,
 };
 
-export const HabitList: React.FC<HabitListProps> = ({
+export const HabitList: React.FC<HabitListProps> = memo(({
   habitId,
   category,
   title,
@@ -36,11 +36,11 @@ export const HabitList: React.FC<HabitListProps> = ({
   onDeleted,
   onHabitUpdated,
 }) => {
-  const Icon = CategoryIcons[category];
+  const Icon = useMemo(() => CategoryIcons[category], [category]);
   const { user } = React.useContext(AuthContext);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!user) return;
 
     Alert.alert(
@@ -67,17 +67,17 @@ export const HabitList: React.FC<HabitListProps> = ({
       ],
       { cancelable: true }
     );
-  };
+  }, [user, habitId, onDeleted]);
 
-  const handleEdit = () => {
+  const handleEdit = useCallback(() => {
     setShowEditModal(true);
-  };
+  }, []);
 
-  const handleHabitUpdated = (habitId: string, updatedData: any) => {
+  const handleHabitUpdatedCb = useCallback((habitId: string, updatedData: any) => {
     if (onHabitUpdated) {
       onHabitUpdated(habitId, updatedData);
     }
-  };
+  }, [onHabitUpdated]);
 
   const habitData = {
     habitId,
@@ -130,12 +130,12 @@ export const HabitList: React.FC<HabitListProps> = ({
           onClose={() => setShowEditModal(false)}
           habit={habitData}
           token={user.token}
-          onHabitUpdated={handleHabitUpdated}
+          onHabitUpdated={handleHabitUpdatedCb}
         />
       )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

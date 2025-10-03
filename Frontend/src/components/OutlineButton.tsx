@@ -1,11 +1,9 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { theme } from "../styles/theme";
+import { Props } from "../types/Components";
 
-interface Props {
-  title: string;
-  onPress: () => void;
-}
+
 
 export const OutlineButton: React.FC<Props> = ({ title, onPress }) => (
   <TouchableOpacity

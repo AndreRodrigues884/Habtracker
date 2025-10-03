@@ -14,24 +14,9 @@ import { editUserHabit } from "../services/habitService";
 import { CustomDropdown } from "./CustomDropdown";
 import { DatePickerInput } from "./DatePickerInput";
 import { HabitUpdate, CategoryType, FrequencyType } from "../types/Habit";
+import { EditHabitModalProps } from "../types/Components";
 
-interface EditHabitModalProps {
-  visible: boolean;
-  onClose: () => void;
-  habit: {
-    habitId: string;
-    title: string;
-    description?: string;
-    category: string;
-    frequency: string;
-    intention?: string;
-    trigger?: string;
-    startDate?: string;
-    endDate?: string;
-  };
-  token: string;
-  onHabitUpdated: (habitId: string, updatedData: any) => void;
-}
+
 
 const categories = [
   { value: 'health', label: 'Health' },
@@ -73,17 +58,17 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert("Erro", "O título do hábito é obrigatório.");
+      Alert.alert("Error", "Habit title is required.");
       return;
     }
 
     if (!category) {
-      Alert.alert("Erro", "A categoria é obrigatória.");
+      Alert.alert("Error", "Category is required.");
       return;
     }
 
     if (!frequency) {
-      Alert.alert("Erro", "A frequência é obrigatória.");
+      Alert.alert("Error", "Frequency is mandatory.");
       return;
     }
 
@@ -103,10 +88,10 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
       
       onHabitUpdated(habit.habitId, updates);
       onClose();
-      Alert.alert("Success", "Hábito atualizado com sucesso!");
+      Alert.alert("Success", "Habit updated successfully!");
     } catch (error) {
-      console.error("Erro ao atualizar hábito:", error);
-      Alert.alert("Erro", "Não foi possível atualizar o hábito. Tenta novamente.");
+      console.error("Error updating habit:", error);
+      Alert.alert("Error", "Could not update habit. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -136,7 +121,7 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Editar Hábito</Text>
+          <Text style={styles.headerTitle}>Edit Habit</Text>
           <Pressable onPress={handleClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>✕</Text>
           </Pressable>

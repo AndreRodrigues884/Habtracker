@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState, useCallback } from "react";
+import React, { useContext, useEffect, useMemo, useState, useCallback, memo } from "react";
 import { View, Text, StyleSheet, FlatList } from "react-native";
 import { Header } from "../components/Header";
 import { theme } from "../styles/theme";
@@ -16,7 +16,7 @@ import FireIcon from '../assets/icons/fire.svg';
 
 const weekdayLabels = ["M", "T", "W", "T", "F", "S", "S"]; // Monday-first
 
-function CategoryIcon({ category }: { category: Habit["category"] }) {
+const CategoryIcon = memo(function CategoryIcon({ category }: { category: Habit["category"] }) {
   switch (category) {
     case "health":
       return <HealthIcon width={20} height={20} />;
@@ -33,7 +33,7 @@ function CategoryIcon({ category }: { category: Habit["category"] }) {
     default:
       return null;
   }
-}
+});
 
 function getStartOfWeekMonday(date: Date): Date {
   const d = new Date(date);
@@ -44,22 +44,45 @@ function getStartOfWeekMonday(date: Date): Date {
   return d;
 }
 
-function computeCompletedWeekdays(habit: any): boolean[] {
+function computeCompletedWeekdaysForWeek(completionDates: string[] | undefined, startOfWeek: Date): boolean[] {
   const filled = new Array(7).fill(false);
-  if (!habit.completionDates || habit.completionDates.length === 0) return filled;
+  if (!completionDates || completionDates.length === 0) return filled;
 
-  const startOfWeek = getStartOfWeekMonday(new Date());
-
-  habit.completionDates.forEach((dateStr: string) => {
-    const d = new Date(dateStr);
+  for (let i = 0; i < completionDates.length; i += 1) {
+    const d = new Date(completionDates[i]);
     const diff = Math.floor((d.getTime() - startOfWeek.getTime()) / (1000 * 60 * 60 * 24));
-    if (diff >= 0 && diff < 7) {
-      filled[diff] = true;
-    }
-  });
+    if (diff >= 0 && diff < 7) filled[diff] = true;
+  }
 
   return filled;
 }
+
+const HabitRow = memo(function HabitRow({ item }: { item: Habit }) {
+  const weekStart = useMemo(() => getStartOfWeekMonday(new Date()), []);
+  const weekDots = useMemo(() => computeCompletedWeekdaysForWeek(item.completionDates as any, weekStart), [item.completionDates, weekStart]);
+
+  return (
+    <View style={styles.row}>
+      <View style={styles.left}>
+        <CategoryIcon category={item.category} />
+        <View style={styles.titleWrap}>
+          <Text style={styles.habitTitle} numberOfLines={1}>{item.title}</Text>
+          <View style={styles.streakContainer}>
+            <FireIcon width={10} height={10} />
+            <Text style={styles.streakText}>{item.currentStreak} days</Text>
+          </View>
+        </View>
+      </View>
+      <View style={styles.right}>
+        {weekdayLabels.map((label, idx) => (
+          <View key={label + idx} style={[styles.dayBox, weekDots[idx] && styles.dayBoxFilled]}>
+            <Text style={[styles.dayBoxText, weekDots[idx] && styles.dayBoxTextFilled]}>{label}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+});
 
 
 export const StreakScreen = () => {
@@ -88,30 +111,11 @@ export const StreakScreen = () => {
     setRefreshing(false);
   }, [fetchHabits]);
 
-  const renderItem = ({ item }: { item: Habit }) => {
-    const weekDots = computeCompletedWeekdays(item);
-    return (
-      <View style={styles.row}>
-        <View style={styles.left}>
-          <CategoryIcon category={item.category} />
-          <View style={styles.titleWrap}>
-            <Text style={styles.habitTitle} numberOfLines={1}>{item.title}</Text>
-            <View style={styles.streakContainer}>
-              <FireIcon width={10} height={10} />
-              <Text style={styles.streakText}>{item.currentStreak} days</Text>
-            </View>
-          </View>
-        </View>
-        <View style={styles.right}>
-          {weekdayLabels.map((label, idx) => (
-            <View key={label + idx} style={[styles.dayBox, weekDots[idx] && styles.dayBoxFilled]}>
-              <Text style={[styles.dayBoxText, weekDots[idx] && styles.dayBoxTextFilled]}>{label}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
-  };
+  const renderItem = useCallback(({ item }: { item: Habit }) => {
+    return <HabitRow item={item} />;
+  }, []);
+
+  const renderSeparator = useCallback(() => <View style={styles.separator} />, []);
 
   return (
     <View style={[styles.container, { backgroundColor: t.colors.background }]}>
@@ -122,9 +126,14 @@ export const StreakScreen = () => {
         keyExtractor={(h) => h._id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        ItemSeparatorComponent={renderSeparator}
         refreshing={refreshing}
         onRefresh={onRefresh}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={7}
+        removeClippedSubviews
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -148,6 +157,7 @@ const styles = StyleSheet.create({
     gap: theme.gap.sm,
     paddingBottom: 20,
   },
+  separator: { height: 10 },
   row: {
     ...theme.size.full_width,
     backgroundColor: theme.colors.white,

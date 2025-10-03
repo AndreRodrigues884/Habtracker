@@ -1,18 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Achievement } from '../types/Achievements';
+import { AchievementModalContextType, AchievementModalProviderProps } from '../types/AchievementModal';
 
-interface AchievementModalContextType {
-  modalVisible: boolean;
-  currentAchievement: Achievement | null;
-  showModal: (achievement: Achievement) => void;
-  hideModal: () => void;
-  setModalVisible: (visible: boolean) => void;
-  setCurrentAchievement: (achievement: Achievement | null) => void;
-}
-
-interface AchievementModalProviderProps {
-  children: ReactNode;
-}
 
 const AchievementModalContext = createContext<AchievementModalContextType | undefined>(undefined);
 

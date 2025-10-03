@@ -9,15 +9,8 @@ import {
   StyleSheet,
 } from "react-native";
 import { theme } from "../styles/theme";
+import { CustomDropdownProps } from "../types/Components";
 
-interface CustomDropdownProps {
-  label: string;
-  options: { label: string; value: string }[];
-  selectedValue: string | null;
-  onSelect: (value: string) => void;
-  optional?: boolean;
-  placeholder?: string;
-}
 
 export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   label,

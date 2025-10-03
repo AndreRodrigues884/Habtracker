@@ -2,16 +2,9 @@ import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { theme } from "../styles/theme";
+import { DatePickerInputProps } from "../types/Components";
 
-interface DatePickerInputProps {
-  label: string;
-  date: Date | null;
-  onDateChange: (date: Date) => void;
-  optional?: boolean;
-  minimumDate?: Date;
-  maximumDate?: Date;
-  placeholder?: string;
-}
+
 
 export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   label,

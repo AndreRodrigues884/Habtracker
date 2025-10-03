@@ -24,7 +24,7 @@ export const ListScreen = () => {
       const data = await getUserHabits(user.token);
       setHabits(data || []);
     } catch (err) {
-      console.error("Erro ao buscar hábitos:", err);
+      console.error("Error searching for habits:", err);
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -55,7 +55,7 @@ export const ListScreen = () => {
     );
   };
 
-  // Função para remover um hábito da lista local após exclusão
+  // Function to remove a habit from the local list after deletion
   const handleHabitDeleted = (habitId: string) => {
     setHabits(prevHabits => 
       prevHabits.filter(habit => habit._id !== habitId)
@@ -65,17 +65,17 @@ export const ListScreen = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>
-        Ainda não tens hábitos criados.
+        You don't have any habits yet.
       </Text>
       <Text style={styles.emptySubtext}>
-        Cria o teu primeiro hábito para começares a acompanhar o teu progresso!
+        Create your first habit to start tracking your progress!
       </Text>
     </View>
   );
 
   const renderLoadingState = () => (
     <View style={styles.loadingContainer}>
-      <Text style={styles.loadingText}>A carregar hábitos...</Text>
+      <Text style={styles.loadingText}>Loading habits...</Text>
     </View>
   );
 
