@@ -47,12 +47,22 @@ export function useHomeData(user: any) {
             const updatedHabit = response.habit;
             setHabits(prev => prev.map(h => (h._id === habitId ? updatedHabit : h)));
 
+
+            // Atualiza XP e nível imediatamente no contexto
+            if (response.newLevel != null) {
+                setUser(prev => ({
+                    ...prev,
+                    currentXp: (prev.currentXp ?? 0) + response.xpGained,
+                    level: response.newLevel,
+                }));
+            }
+
             // Update XP/Level
             await fetchXpAchievements();
         } catch (err: any) {
             console.error("Error completing habit:", err.response?.data || err.message);
         }
-    }, [user, fetchXpAchievements]);
+    }, [user, setUser, fetchXpAchievements]);
 
     return {
         habits,
@@ -63,3 +73,7 @@ export function useHomeData(user: any) {
         handleComplete,
     };
 }
+function setUser(arg0: (prev: any) => any) {
+    throw new Error("Function not implemented.");
+}
+

@@ -1,11 +1,9 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useContext } from "react";
 import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
 import { Header } from "../components/Header";
 import { theme } from "../styles/theme";
 import { AuthContext } from "../contexts/AuthContext";
-import { getUserHabits } from "../services/habitService";
 import { HabitList } from "../components/HabitList";
-import { Habit } from "../types/Habit";
 import { useThemeContext } from "../contexts/ThemeContext";
 import { useHabitList } from "../hooks/useHabitList";
 
