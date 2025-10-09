@@ -4,6 +4,8 @@
 
 HabTracker is a modern habit tracking application designed to help you build better habits and achieve your goals. Track your daily progress, earn XP, unlock achievements, and watch your personal growth unfold through an engaging gamified experience.
 
+![HabTracker Demo](/Frontend/src/assets/video/Habtracker.gif)
+
 ---
 
 ## ✨ What Makes HabTracker Special
@@ -23,7 +25,6 @@ HabTracker is a modern habit tracking application designed to help you build bet
 - Native mobile app built with React Native and Expo
 - Intuitive, clean interface optimized for daily use
 - Offline-capable with smart data synchronization
-- Cross-platform support (iOS, Android, Web)
 
 ### 🔐 **Secure & Private**
 - JWT-based authentication with refresh tokens
